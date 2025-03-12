@@ -399,48 +399,6 @@ class AuxBattle(commands.Cog):
         self.save_data()
         await ctx.send("Tournament has been reset!")
 
-    @commands.command(name='help_aux')
-    async def help_aux(self, ctx):
-        """Display help information for the Aux Battle commands"""
-        embed = discord.Embed(
-            title="🎵 Aux Battle Help 🎵",
-            description="A music tournament where players submit songs that match an image, and others vote for the best match!",
-            color=discord.Color.blue()
-        )
-        
-        # Player Commands
-        player_commands = [
-            "`!auxbattle signup` - Join the aux battle tournament",
-            "`!auxbattle submit [song_link]` - Submit a song for the current match",
-            "`!auxbattle vote [match_id] [1/2]` - Vote for your favorite song submission",
-            "`!auxbattle bracket` - View the current tournament bracket"
-        ]
-        embed.add_field(name="Player Commands", value="\n".join(player_commands), inline=False)
-        
-        # Admin Commands
-        admin_commands = [
-            "`!auxbattle opensignup` - Open registrations for a new tournament",
-            "`!auxbattle closesignup` - Close registrations",
-            "`!auxbattle start` - Create and start the tournament with signed-up players",
-            "`!auxbattle endvoting [match_id]` - End voting for a specific match",
-            "`!auxbattle reset` - Reset the entire tournament"
-        ]
-        embed.add_field(name="Admin Commands", value="\n".join(admin_commands), inline=False)
-        
-        # How to Play
-        how_to_play = [
-            "1. Sign up using `!auxbattle signup`",
-            "2. Wait for an admin to start the tournament",
-            "3. When it's your turn, you'll be shown an image",
-            "4. Submit a song that matches the vibe of the image using `!auxbattle submit [song_link]`",
-            "5. Everyone votes on which song fits better",
-            "6. Winners advance to the next round",
-            "7. Last player standing wins!"
-        ]
-        embed.add_field(name="How to Play", value="\n".join(how_to_play), inline=False)
-        
-        await ctx.send(embed=embed)
-
 async def setup(bot):
     await bot.add_cog(AuxBattle(bot))
 

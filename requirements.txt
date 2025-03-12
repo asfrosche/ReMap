@@ -1,5 +1,5 @@
-discord.py>=2.3.2
-python-dotenv>=1.0.0
-geopy>=2.3.0
-pycountry-convert>=0.7.2
-folium>=0.14.0
+discord.py==2.5.2
+folium==0.19.5
+geopy==2.4.1
+pycountry_convert==0.7.2
+python-dotenv==1.0.1
