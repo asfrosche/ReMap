@@ -1,0 +1,52 @@
+{
+  "1342914741475086378": {
+    "max_slots": 10,
+    "host_id": 691180618402234399,
+    "message_id": 1342914741475086378,
+    "slots": {
+      "1": {
+        "user": null,
+        "role": null
+      },
+      "2": {
+        "user": null,
+        "role": null
+      },
+      "3": {
+        "user": null,
+        "role": null
+      },
+      "4": {
+        "user": null,
+        "role": null
+      },
+      "5": {
+        "user": null,
+        "role": null
+      },
+      "6": {
+        "user": null,
+        "role": null
+      },
+      "7": {
+        "user": null,
+        "role": null
+      },
+      "8": {
+        "user": null,
+        "role": null
+      },
+      "9": {
+        "user": null,
+        "role": null
+      },
+      "10": {
+        "user": null,
+        "role": null
+      }
+    },
+    "sponsor_queue": [
+      "691180618402234399"
+    ]
+  }
+}
