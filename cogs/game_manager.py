@@ -7,12 +7,13 @@ from discord.ui import View, Button, Select
 games = {}
 
 class GameSign:
-    def __init__(self, max_slots, host_id, message_id, hostname, game_name):
+    def __init__(self, max_slots, host_id, message_id, hostname, game_name, players_only):
         self.max_slots = max_slots
         self.host_id = host_id
         self.message_id = message_id
         self.hostname = hostname
         self.game_name = game_name
+        self.players_only = players_only
         self.slots = {str(i): {"player": None, "sponsor": None} for i in range(1, max_slots + 1)}
 
 class GameView(View):
@@ -41,22 +42,18 @@ class GameView(View):
             slot_text = ""
             for num, data in game.slots.items():
                 player = f"<@{data['player']}>" if data['player'] else "Empty"
-                sponsor = f"<@{data['sponsor']}>" if data['sponsor'] else "No sponsor"
-                slot_info = f"Slot {num}: {player}\n   Sponsor: {sponsor}"
+                slot_info = f"Slot {num}: {player}"
                 
-                # Check if adding this slot info would exceed the limit
+                # Add sponsor information if there is a sponsor
+                if data['sponsor']:
+                    slot_info += f"\n   Sponsor: <@{data['sponsor']}>"
+                
                 if len(slot_text) + len(slot_info) > 1024:
-                    # If it would exceed, add the current slot_text as a field and reset it
                     embed.add_field(name="Slots", value=slot_text, inline=False)
                     slot_text = slot_info
                 else:
-                    # If not, append the slot info to the current slot_text
-                    if slot_text:
-                        slot_text += "\n" + slot_info
-                    else:
-                        slot_text = slot_info
+                    slot_text += "\n" + slot_info if slot_text else slot_info
             
-            # Add the last set of slots if any
             if slot_text:
                 embed.add_field(name="Slots", value=slot_text, inline=False)
             
@@ -261,18 +258,23 @@ class GameManager(commands.Cog):
                 print(f"Error re-registering view {game_id}: {e}")
                 del games[game_id]
     
-    @commands.command()
-    async def startgame(self, ctx, max_slots: int, host: discord.Member, *, game_name: str):
+    @commands.command(aliases=['sg'])
+    async def startgame(self, ctx, max_slots: int, host: discord.Member, *, args):
         """Start a new game lobby with specified slots and host"""
         if not 2 <= max_slots <= 50:
             return await ctx.send("Slots must be between 2-50")
-            
+
+        # Parse arguments
+        args_list = args.split()
+        players_only = "-p" in args_list
+        game_name = " ".join([arg for arg in args_list if arg != "-p"])
+
         game_id = ctx.channel.id
-        games[game_id] = GameSign(max_slots, host.id, None, host.display_name, game_name)
-        
+        games[game_id] = GameSign(max_slots, host.id, None, host.display_name, game_name, players_only)
+
         view = GameView(game_id, self.bot)
         message = await ctx.send(f"Game lobby initializing for {game_name} hosted by {host.mention}...", view=view)
-        
+
         games[game_id].message_id = message.id
         await view.update_embed()
 
