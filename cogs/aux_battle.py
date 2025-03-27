@@ -18,8 +18,8 @@ class AuxBattle(commands.Cog):
             "https://example.com/image2.jpg",
             # etc.
         ]
-        self.voting_timer = 20  # Default 24 hours (in seconds)
-        self.submission_timer = 1000  # Default 24 hours (in seconds)
+        self.voting_timer = 3600*24  # Default 24 hours (in seconds)
+        self.submission_timer = 3600*12  # Default 24 hours (in seconds)
         
         # Load data if exists
         self.data_file = "aux_battle_data.json"

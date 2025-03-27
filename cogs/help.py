@@ -39,7 +39,7 @@ class HelpCommand(commands.Cog):
         embed.add_field(
             name="Game Commands",
             value=(
-                "`!startgame <max_players> @host <game_name>`: Start a new game\n"
+                "`!startgame <max_players> @host [-role <role_name>] <game_name>`: Start a new game\n"
                 "`!addplayer <slot_num> @player [game_name]`: Add a player to an empty slot (Admin only)\n"
                 "`!removeplayer <slot_num> [game_name]`: Remove a player from a slot (Admin only)\n"
             ),

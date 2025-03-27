@@ -2,18 +2,19 @@ import discord
 from discord import SelectOption
 from discord.ext import commands
 from discord.ui import View, Button, Select
+from discord.utils import get
 
 # Dictionary to store active games
 games = {}
 
 class GameSign:
-    def __init__(self, max_slots, host_id, message_id, hostname, game_name, players_only):
+    def __init__(self, max_slots, host_id, message_id, hostname, game_name, role_name):
         self.max_slots = max_slots
         self.host_id = host_id
         self.message_id = message_id
         self.hostname = hostname
         self.game_name = game_name
-        self.players_only = players_only
+        self.role_name = role_name
         self.slots = {str(i): {"player": None, "sponsor": None} for i in range(1, max_slots + 1)}
 
 class GameView(View):
@@ -152,7 +153,6 @@ class PlayerSlotSelect(Select):
         slot_num = self.values[0]
         user_id = str(interaction.user.id)
         
-        # Check if user is already in any slot
         if any(slot["player"] == user_id or slot["sponsor"] == user_id for slot in game.slots.values()):
             await interaction.response.send_message("You're already in a slot! Leave your current slot first.", ephemeral=True)
             return
@@ -163,6 +163,7 @@ class PlayerSlotSelect(Select):
             game.slots[slot_num]["player"] = user_id
             await interaction.response.send_message(f"Joined slot {slot_num} as player!", ephemeral=True)
             await self.main_view.update_embed()
+            await assign_role(interaction.guild, interaction.user, game.role_name)
 
 class SponsorJoinButton(Button):
     def __init__(self, game_id):
@@ -224,12 +225,9 @@ class LeaveButton(Button):
         removed = False
         
         for slot in game.slots.values():
-            if slot["player"] == user_id:
-                slot["player"] = None
-                slot["sponsor"] = None
-                removed = True
-            elif slot["sponsor"] == user_id:
-                slot["sponsor"] = None
+            if slot["player"] == user_id or slot["sponsor"] == user_id:
+                slot["player"] = None if slot["player"] == user_id else slot["player"]
+                slot["sponsor"] = None if slot["sponsor"] == user_id else slot["sponsor"]
                 removed = True
         
         await interaction.response.send_message(
@@ -239,6 +237,7 @@ class LeaveButton(Button):
         await self.view.update_embed()
         
         if removed:
+            await remove_role(interaction.guild, interaction.user, game.role_name)
             host = interaction.guild.get_member(int(game.host_id))
             if host:
                 await host.send(f"{interaction.user.name} has left the game lobby.")
@@ -266,18 +265,29 @@ class GameManager(commands.Cog):
 
         # Parse arguments
         args_list = args.split()
-        players_only = "-p" in args_list
-        game_name = " ".join([arg for arg in args_list if arg != "-p"])
+        role_name = None
+        game_name_parts = []
+
+        for i, arg in enumerate(args_list):
+            if arg == "-role" and i + 1 < len(args_list):
+                role_name = args_list[i + 1]
+                i += 1  # Skip the next argument as it's the role name
+            else:
+                game_name_parts.append(arg)
+
+        game_name = " ".join(game_name_parts)
+
+        if not game_name:
+            return await ctx.send("Please provide a game name.")
 
         game_id = ctx.channel.id
-        games[game_id] = GameSign(max_slots, host.id, None, host.display_name, game_name, players_only)
+        games[game_id] = GameSign(max_slots, host.id, None, host.display_name, game_name, role_name)
 
         view = GameView(game_id, self.bot)
         message = await ctx.send(f"Game lobby initializing for {game_name} hosted by {host.mention}...", view=view)
 
         games[game_id].message_id = message.id
         await view.update_embed()
-
 
 
     @commands.command()
@@ -377,6 +387,17 @@ class GameManager(commands.Cog):
             await view.update_embed()
         
         await ctx.send(f"Removed {player_mention} from slot {slot_num} in game '{game.game_name}'")
+
+async def assign_role(guild, member, role_name):
+    role = get(guild.roles, name=role_name)
+    if not role:
+        role = await guild.create_role(name=role_name)
+    await member.add_roles(role)
+
+async def remove_role(guild, member, role_name):
+    role = get(guild.roles, name=role_name)
+    if role and role in member.roles:
+        await member.remove_roles(role)
 
 async def setup(bot):
     await bot.add_cog(GameManager(bot))
